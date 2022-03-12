@@ -37,6 +37,18 @@ struct DayWeather {
     #[serde(alias = "mintempC")]
     min_temp_c: String,
     astronomy: Vec<Astronomy>,
+    hourly: Vec<HourWeather>,
+}
+
+#[derive(Deserialize, Serialize)]
+struct HourWeather {
+    time: String,
+    #[serde(alias = "weatherCode")]
+    weather_code: String,
+    #[serde(alias = "tempC")]
+    temp_c: String,
+    #[serde(alias = "weatherDesc")]
+    weather_desc: Vec<WeatherDesc>,
 }
 
 #[derive(Deserialize, Serialize)]

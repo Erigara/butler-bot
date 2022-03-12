@@ -13,4 +13,7 @@ Humidity: {{humidity}}%
 {{#with astronomy.[0]}}
 🌅 {{sunrise}} 🌇 {{sunset}}
 {{/with}}
+{{#each hourly}}
+{{fmt_time time}}: {{fmt_wwo_code weather_code}} {{fmt_weather temp_c}} {{weather_desc.[0].value}}
+{{/each}}
 {{/each}}
