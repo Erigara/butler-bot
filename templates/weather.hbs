@@ -1,0 +1,16 @@
+{{#with nearest_area.[0]}}
+Weather in *{{region.[0].value}}, {{area_name.[0].value}}*
+{{/with}}
+{{#with current_condition.[0]}}
+*{{weather_desc.[0].value}} {{fmt_weather temp_c}}°*
+Feels like: {{fmt_weather feels_like_c}}°
+Wind: {{windspeed_kmph}}Km/h
+Humidity: {{humidity}}%
+{{/with}}
+{{#each weather}}
+*{{fmt_date date}}*
+⬆️ {{fmt_weather max_temp_c}}° ⬇️ {{fmt_weather min_temp_c}}°
+{{#with astronomy.[0]}}
+🌅 {{sunrise}} 🌇 {{sunset}}
+{{/with}}
+{{/each}}
