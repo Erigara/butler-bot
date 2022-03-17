@@ -34,5 +34,5 @@ deploy:
   script:
   - kubectl config get-contexts
   - kubectl config use-context erigara-group/gitlab-agent:primary-agent
-  - (cd ./manifests && kustomize edit set image IMAGE=$IMAGE)
+  - (cd ./manifests && ../kustomize edit set image IMAGE=$IMAGE)
   - kubectl apply -k ./manifests
