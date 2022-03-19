@@ -1,12 +1,26 @@
 use anyhow;
-use teloxide::{dispatching2::dialogue::InMemStorage, macros::DialogueState, prelude2::*};
+use teloxide::{
+    dispatching2::dialogue::InMemStorage, macros::DialogueState, prelude2::*,
+    utils::command::BotCommand,
+};
 
 use handlebars::Handlebars;
 
-mod weather;
 mod formatter;
+mod weather;
 
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
+
+#[derive(BotCommand, Clone)]
+#[command(rename = "lowercase", description = "These commands are supported:")]
+enum Command {
+    #[command(description = "display this text.")]
+    Help,
+    #[command(description = "show help command.")]
+    Start,
+    #[command(description = "show weather at specific location.")]
+    Weather,
+}
 
 #[derive(DialogueState, Clone)]
 #[handler_out(anyhow::Result<()>)]
@@ -52,9 +66,33 @@ async fn handle_start(
     msg: Message,
     dialogue: MyDialogue,
 ) -> anyhow::Result<()> {
-    bot.send_message(msg.chat.id, "Let's start! Send me your location.")
-        .await?;
-    dialogue.update(State::ReceiveLocation).await?;
+    if let Some(text) = msg.text() {
+        match Command::parse(text, "ButlerBot") {
+            Ok(Command::Help) => {
+                dialogue.exit().await?;
+                bot.send_message(msg.chat.id, Command::descriptions()).await?
+            },
+            Ok(Command::Start) => {
+                dialogue.exit().await?;
+                bot.send_message(msg.chat.id, Command::descriptions()).await?
+            },
+            Ok(Command::Weather) => {
+                dialogue.update(State::ReceiveLocation).await?;
+                bot.send_message(
+                    msg.chat.id,
+                    "Let's start! Send me your location.",
+                )
+                .await?
+            },
+            _ => {
+                dialogue.exit().await?;
+                bot.send_message(msg.chat.id, format!("Unknown command!\n{}", Command::descriptions())).await?
+            }
+        };
+    } else {
+        dialogue.exit().await?;
+        bot.send_message(msg.chat.id, format!("Unknown command!\n{}", Command::descriptions())).await?;
+    }
     Ok(())
 }
 
@@ -67,7 +105,7 @@ async fn handle_receive_location<'a>(
     match msg.location() {
         Some(location) => {
             let weather = weather::get_weather(location.latitude, location.longitude).await?;
-            
+
             let message = registry.render("weather", &weather)?;
 
             bot.send_message(msg.chat.id, message)
