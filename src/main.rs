@@ -1,6 +1,9 @@
 use anyhow;
 use teloxide::{
-    dispatching2::dialogue::InMemStorage, macros::DialogueState, prelude2::*,
+    dispatching2::dialogue::InMemStorage,
+    macros::DialogueState,
+    prelude2::*,
+    types::{ButtonRequest, KeyboardButton, KeyboardMarkup, KeyboardRemove},
     utils::command::BotCommand,
 };
 
@@ -61,6 +64,13 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+fn make_weather_keyboard() -> KeyboardMarkup {
+    let button = KeyboardButton::new("🗺️").request(ButtonRequest::Location);
+    let keyboard: Vec<Vec<KeyboardButton>> = vec![vec![button]];
+
+    KeyboardMarkup::new(keyboard)
+}
+
 async fn handle_start(
     bot: AutoSend<Bot>,
     msg: Message,
@@ -70,28 +80,37 @@ async fn handle_start(
         match Command::parse(text, "ButlerBot") {
             Ok(Command::Help) => {
                 dialogue.exit().await?;
-                bot.send_message(msg.chat.id, Command::descriptions()).await?
-            },
+                bot.send_message(msg.chat.id, Command::descriptions())
+                    .await?
+            }
             Ok(Command::Start) => {
                 dialogue.exit().await?;
-                bot.send_message(msg.chat.id, Command::descriptions()).await?
-            },
+                bot.send_message(msg.chat.id, Command::descriptions())
+                    .await?
+            }
             Ok(Command::Weather) => {
                 dialogue.update(State::ReceiveLocation).await?;
-                bot.send_message(
-                    msg.chat.id,
-                    "Let's start! Send me your location.",
-                )
-                .await?
-            },
+                let keyboard = make_weather_keyboard();
+                bot.send_message(msg.chat.id, "Let's start! Send me your location.")
+                    .reply_markup(keyboard)
+                    .await?
+            }
             _ => {
                 dialogue.exit().await?;
-                bot.send_message(msg.chat.id, format!("Unknown command!\n{}", Command::descriptions())).await?
+                bot.send_message(
+                    msg.chat.id,
+                    format!("Unknown command!\n{}", Command::descriptions()),
+                )
+                .await?
             }
         };
     } else {
         dialogue.exit().await?;
-        bot.send_message(msg.chat.id, format!("Unknown command!\n{}", Command::descriptions())).await?;
+        bot.send_message(
+            msg.chat.id,
+            format!("Unknown command!\n{}", Command::descriptions()),
+        )
+        .await?;
     }
     Ok(())
 }
@@ -110,6 +129,7 @@ async fn handle_receive_location<'a>(
 
             bot.send_message(msg.chat.id, message)
                 .parse_mode(teloxide::types::ParseMode::MarkdownV2)
+                .reply_markup(KeyboardRemove::new())
                 .await?;
             dialogue.exit().await?;
         }
