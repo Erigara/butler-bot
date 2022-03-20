@@ -79,29 +79,29 @@ async fn handle_start(
     if let Some(text) = msg.text() {
         match Command::parse(text, "ButlerBot") {
             Ok(Command::Help) => {
-                dialogue.exit().await?;
                 bot.send_message(msg.chat.id, Command::descriptions())
-                    .await?
+                    .await?;
+                dialogue.exit().await?;
             }
             Ok(Command::Start) => {
-                dialogue.exit().await?;
                 bot.send_message(msg.chat.id, Command::descriptions())
-                    .await?
+                    .await?;
+                dialogue.exit().await?;
             }
             Ok(Command::Weather) => {
-                dialogue.update(State::ReceiveLocation).await?;
                 let keyboard = make_weather_keyboard();
                 bot.send_message(msg.chat.id, "Let's start! Send me your location.")
                     .reply_markup(keyboard)
-                    .await?
+                    .await?;
+                dialogue.update(State::ReceiveLocation).await?;
             }
             _ => {
-                dialogue.exit().await?;
                 bot.send_message(
                     msg.chat.id,
                     format!("Unknown command!\n{}", Command::descriptions()),
                 )
-                .await?
+                .await?;
+                dialogue.exit().await?;
             }
         };
     } else {
