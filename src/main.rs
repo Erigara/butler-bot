@@ -12,7 +12,7 @@ use handlebars::Handlebars;
 mod formatter;
 mod weather;
 
-type MyDialogue = Dialogue<State, InMemStorage<State>>;
+type BotDialogue = Dialogue<State, InMemStorage<State>>;
 
 #[derive(BotCommand, Clone)]
 #[command(rename = "lowercase", description = "These commands are supported:")]
@@ -74,7 +74,7 @@ fn make_weather_keyboard() -> KeyboardMarkup {
 async fn handle_start(
     bot: AutoSend<Bot>,
     msg: Message,
-    dialogue: MyDialogue,
+    dialogue: BotDialogue,
 ) -> anyhow::Result<()> {
     if let Some(text) = msg.text() {
         match Command::parse(text, "ButlerBot") {
@@ -118,7 +118,7 @@ async fn handle_start(
 async fn handle_receive_location<'a>(
     bot: AutoSend<Bot>,
     msg: Message,
-    dialogue: MyDialogue,
+    dialogue: BotDialogue,
     registry: Handlebars<'a>,
 ) -> anyhow::Result<()> {
     match msg.location() {
