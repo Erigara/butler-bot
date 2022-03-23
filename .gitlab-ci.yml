@@ -1,22 +1,59 @@
+.rust-cache: &rust-cache
+  paths:
+    - .cargo/bin/
+    - .cargo/registry/index/
+    - .cargo/registry/cache/
+    - .cargo/git/db/
+    - target/
+  policy: pull-push
+
 variables:
   IMAGE_NAME: $CI_REGISTRY_IMAGE
   IMAGE_TAG:  $CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
   IMAGE: $IMAGE_NAME:$IMAGE_TAG
+  CARGO_INCREMENTAL: 0
+  CARGO_HOME: $CI_PROJECT_DIR/.cargo
 
 stages:
-    - test
     - build
+    - test
+    - predeploy
     - deploy
 
+build-test:
+  image: messense/rust-musl-cross:aarch64-musl
+  stage: build
+  script:
+    - cargo test --no-run --locked
+  cache:
+    <<: *rust-cache
+    key: test
+
+build-binary:
+  image: messense/rust-musl-cross:aarch64-musl
+  stage: build
+  script:
+    - cargo build --release
+  cache:
+    <<: *rust-cache
+    key: binary
+  artifacts:
+    paths:
+      - target/aarch64-unknown-linux-musl/release/butler-bot
+
 test:
-  image: rust:1.59
+  image: messense/rust-musl-cross:aarch64-musl
   stage: test
   script:
-    - cargo test
+    - cargo test -- --nocapture --quiet
+  cache:
+    <<: *rust-cache
+    key: test
+    policy: pull
 
-build:
+build-and-push-docker-image:
   image: docker:19.03.12
-  stage: build
+  stage: predeploy
   services:
     - docker:19.03.12-dind
   script:
@@ -30,9 +67,9 @@ deploy:
     entrypoint: [""]
   stage: deploy
   before_script:
-  - curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+    - curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
   script:
-  - kubectl config get-contexts
-  - kubectl config use-context erigara-group/gitlab-agent:primary-agent
-  - (cd ./manifests && ../kustomize edit set image IMAGE=$IMAGE)
-  - kubectl apply -k ./manifests
+    - kubectl config get-contexts
+    - kubectl config use-context erigara-group/gitlab-agent:primary-agent
+    - (cd ./manifests && ../kustomize edit set image IMAGE=$IMAGE)
+    - kubectl apply -k ./manifests
