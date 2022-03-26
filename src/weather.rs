@@ -72,14 +72,35 @@ struct WeatherDesc {
     value: String,
 }
 
-pub async fn get_weather(latitude: f64, longitude: f64) -> anyhow::Result<Weather> {
-    let weather: Weather = reqwest::get(format!(
+pub async fn get_weather_by_location(
+    latitude: f64,
+    longitude: f64,
+) -> anyhow::Result<Option<Weather>> {
+    let response = reqwest::get(format!(
         "https://wttr.in/{},{}?format=j1",
         latitude, longitude
     ))
-    .await?
-    .json()
     .await?;
+
+    let weather = if response.status().is_success() {
+        let weather = response.json().await?;
+        Some(weather)
+    } else {
+        None
+    };
+
+    Ok(weather)
+}
+
+pub async fn get_weather_by_name(name: &str) -> anyhow::Result<Option<Weather>> {
+    let response = reqwest::get(format!("https://wttr.in/{}?format=j1", name)).await?;
+
+    let weather = if response.status().is_success() {
+        let weather = response.json().await?;
+        Some(weather)
+    } else {
+        None
+    };
 
     Ok(weather)
 }
