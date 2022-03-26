@@ -121,23 +121,34 @@ async fn handle_receive_location<'a>(
     dialogue: BotDialogue,
     registry: Handlebars<'a>,
 ) -> anyhow::Result<()> {
-    match msg.location() {
+    let weather = match msg.location() {
         Some(location) => {
-            let weather = weather::get_weather(location.latitude, location.longitude).await?;
+            weather::get_weather_by_location(location.latitude, location.longitude).await?
+        }
+        None => {
+            match msg.text() {
+                Some(name) => {
+                    weather::get_weather_by_name(name).await?
+                },
+                None => None,
+            }
+        }
+    };
 
+    match weather {
+        Some(weather) => {
             let message = registry.render("weather", &weather)?;
-
             bot.send_message(msg.chat.id, message)
                 .parse_mode(teloxide::types::ParseMode::MarkdownV2)
                 .reply_markup(KeyboardRemove::new())
                 .await?;
             dialogue.exit().await?;
-        }
+        },
         None => {
-            bot.send_message(msg.chat.id, "Can't get location, please, try again.")
-                .await?;
+            bot.send_message(msg.chat.id, "Can't find location, please, try again.")
+            .await?;
         }
-    }
+    };
 
     Ok(())
 }
