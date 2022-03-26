@@ -3,10 +3,10 @@ use reqwest;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-pub struct Weather {
+pub struct WeatherForecast {
     nearest_area: Vec<NearestArea>,
     current_condition: Vec<CurrentCondition>,
-    weather: Vec<DayWeather>,
+    weather: Vec<DayWeatherForecast>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -30,7 +30,7 @@ struct NearestArea {
 }
 
 #[derive(Deserialize, Serialize)]
-struct DayWeather {
+struct DayWeatherForecast {
     date: String,
     #[serde(alias = "maxtempC")]
     max_temp_c: String,
@@ -72,10 +72,10 @@ struct WeatherDesc {
     value: String,
 }
 
-pub async fn get_weather_by_location(
+pub async fn get_weather_forecast_by_location_coords(
     latitude: f64,
     longitude: f64,
-) -> anyhow::Result<Option<Weather>> {
+) -> anyhow::Result<Option<WeatherForecast>> {
     let response = reqwest::get(format!(
         "https://wttr.in/{},{}?format=j1",
         latitude, longitude
@@ -92,7 +92,9 @@ pub async fn get_weather_by_location(
     Ok(weather)
 }
 
-pub async fn get_weather_by_name(name: &str) -> anyhow::Result<Option<Weather>> {
+pub async fn get_weather_forecast_by_location_name(
+    name: &str,
+) -> anyhow::Result<Option<WeatherForecast>> {
     let response = reqwest::get(format!("https://wttr.in/{}?format=j1", name)).await?;
 
     let weather = if response.status().is_success() {

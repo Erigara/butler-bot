@@ -100,10 +100,11 @@ async fn handle_receive_location<'a>(
 ) -> anyhow::Result<()> {
     let weather = match msg.location() {
         Some(location) => {
-            weather::get_weather_by_location(location.latitude, location.longitude).await?
+            weather::get_weather_forecast_by_location_coords(location.latitude, location.longitude)
+                .await?
         }
         None => match msg.text() {
-            Some(name) => weather::get_weather_by_name(name).await?,
+            Some(name) => weather::get_weather_forecast_by_location_name(name).await?,
             None => None,
         },
     };
@@ -132,7 +133,7 @@ async fn main() -> anyhow::Result<()> {
     log::info!("Starting ButlerBot...");
 
     let bot = Bot::from_env().auto_send();
-    let registry = formatter::new()?;
+    let registry = formatter::create_registry()?;
 
     Dispatcher::builder(
         bot,
