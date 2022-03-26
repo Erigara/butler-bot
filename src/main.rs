@@ -65,10 +65,10 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn make_weather_keyboard() -> KeyboardMarkup {
-    let button = KeyboardButton::new("🗺️").request(ButtonRequest::Location);
-    let keyboard: Vec<Vec<KeyboardButton>> = vec![vec![button]];
-
-    KeyboardMarkup::new(keyboard)
+    let button = KeyboardButton::new("📍").request(ButtonRequest::Location);
+    KeyboardMarkup::default()
+        .append_row(vec![button])
+        .resize_keyboard(true)
 }
 
 async fn handle_start(
@@ -125,14 +125,10 @@ async fn handle_receive_location<'a>(
         Some(location) => {
             weather::get_weather_by_location(location.latitude, location.longitude).await?
         }
-        None => {
-            match msg.text() {
-                Some(name) => {
-                    weather::get_weather_by_name(name).await?
-                },
-                None => None,
-            }
-        }
+        None => match msg.text() {
+            Some(name) => weather::get_weather_by_name(name).await?,
+            None => None,
+        },
     };
 
     match weather {
@@ -143,10 +139,10 @@ async fn handle_receive_location<'a>(
                 .reply_markup(KeyboardRemove::new())
                 .await?;
             dialogue.exit().await?;
-        },
+        }
         None => {
             bot.send_message(msg.chat.id, "Can't find location, please, try again.")
-            .await?;
+                .await?;
         }
     };
 
