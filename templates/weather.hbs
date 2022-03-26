@@ -2,18 +2,18 @@
 Weather in *{{region.[0].value}}, {{area_name.[0].value}}*
 {{/with}}
 {{#with current_condition.[0]}}
-*{{weather_desc.[0].value}} {{fmt_weather temp_c}}°*
-Feels like: {{fmt_weather feels_like_c}}°
+*{{weather_desc.[0].value}} {{fmt_temperature temp_c}}°*
+Feels like: {{fmt_temperature feels_like_c}}°
 Wind: {{windspeed_kmph}}Km/h
 Humidity: {{humidity}}%
 {{/with}}
 {{#each weather}}
 *{{fmt_date date}}*
-⬆️ {{fmt_weather max_temp_c}}° ⬇️ {{fmt_weather min_temp_c}}°
+⬆️ {{fmt_temperature max_temp_c}}° ⬇️ {{fmt_temperature min_temp_c}}°
 {{#with astronomy.[0]}}
 🌅 {{sunrise}} 🌇 {{sunset}}
 {{/with}}
 {{#each hourly}}
-{{fmt_time time}}: {{fmt_wwo_code weather_code}} {{fmt_weather temp_c}} {{weather_desc.[0].value}}
+{{fmt_time time}}: {{fmt_wwo_code weather_code}} {{fmt_temperature temp_c}} {{weather_desc.[0].value}}
 {{/each}}
 {{/each}}

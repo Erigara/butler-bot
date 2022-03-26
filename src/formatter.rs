@@ -2,7 +2,7 @@ use handlebars::{
     Context, Handlebars, Helper, JsonRender, Output, RenderContext, RenderError, TemplateError,
 };
 
-fn fmt_weather(
+fn fmt_temperature(
     h: &Helper,
     _: &Handlebars,
     _: &Context,
@@ -142,9 +142,9 @@ fn fmt_wwo_code(
     Ok(())
 }
 
-pub fn new<'a>() -> Result<Handlebars<'a>, TemplateError> {
+pub fn create_registry<'a>() -> Result<Handlebars<'a>, TemplateError> {
     let mut reg = Handlebars::new();
-    reg.register_helper("fmt_weather", Box::new(fmt_weather));
+    reg.register_helper("fmt_temperature", Box::new(fmt_temperature));
     reg.register_helper("fmt_date", Box::new(fmt_date));
     reg.register_helper("fmt_time", Box::new(fmt_time));
     reg.register_helper("fmt_wwo_code", Box::new(fmt_wwo_code));
