@@ -41,29 +41,6 @@ impl Default for State {
     }
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    teloxide::enable_logging!();
-    log::info!("Starting ButlerBot...");
-
-    let bot = Bot::from_env().auto_send();
-    let registry = formatter::new()?;
-
-    Dispatcher::builder(
-        bot,
-        Update::filter_message()
-            .enter_dialogue::<Message, InMemStorage<State>, State>()
-            .dispatch_by::<State>(),
-    )
-    .dependencies(dptree::deps![InMemStorage::<State>::new(), registry])
-    .build()
-    .setup_ctrlc_handler()
-    .dispatch()
-    .await;
-
-    Ok(())
-}
-
 fn make_weather_keyboard() -> KeyboardMarkup {
     let button = KeyboardButton::new("📍").request(ButtonRequest::Location);
     KeyboardMarkup::default()
@@ -145,6 +122,29 @@ async fn handle_receive_location<'a>(
                 .await?;
         }
     };
+
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    teloxide::enable_logging!();
+    log::info!("Starting ButlerBot...");
+
+    let bot = Bot::from_env().auto_send();
+    let registry = formatter::new()?;
+
+    Dispatcher::builder(
+        bot,
+        Update::filter_message()
+            .enter_dialogue::<Message, InMemStorage<State>, State>()
+            .dispatch_by::<State>(),
+    )
+    .dependencies(dptree::deps![InMemStorage::<State>::new(), registry])
+    .build()
+    .setup_ctrlc_handler()
+    .dispatch()
+    .await;
 
     Ok(())
 }
